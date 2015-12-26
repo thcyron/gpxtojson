@@ -9,6 +9,10 @@ values like distance, duration, speed etc.
 
     go install github.com/thcyron/gpxtojson
 
+## Usage
+
+    gpxtojson <gpx file>
+
 ## License
 
 `gpxtojson` is licensed under the MIT license.
