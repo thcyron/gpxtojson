@@ -135,9 +135,12 @@ func convertSegment(segment gpx.Segment) (s Segment) {
 			q := s.Points[i-1]
 			p.Distance = p.DistanceTo(q)
 			p.Duration = uint(p.Time.Sub(q.Time).Seconds())
-			p.Speed = float64(p.Distance/1000) / (float64(p.Duration) / 60 / 60)
 			p.CumulativeDistance = q.CumulativeDistance + p.Distance
 			p.CumulativeDuration = q.CumulativeDuration + p.Duration
+
+			if p.Duration > 0 {
+				p.Speed = float64(p.Distance/1000) / (float64(p.Duration) / 60 / 60)
+			}
 		}
 		s.Points = append(s.Points, p)
 	}
