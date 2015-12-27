@@ -51,13 +51,17 @@ func die(format string, args ...interface{}) {
 }
 
 type Doc struct {
-	Version  string  `json:"version,omitempty"`
-	Distance float64 `json:"distance"`
-	Duration uint    `json:"duration"`
-	Tracks   []Track `json:"tracks"`
+	Version  string    `json:"version,omitempty"`
+	Start    time.Time `json:"start"`
+	End      time.Time `json:"end"`
+	Distance float64   `json:"distance"`
+	Duration uint      `json:"duration"`
+	Tracks   []Track   `json:"tracks"`
 }
 
 type Track struct {
+	Start    time.Time `json:"start"`
+	End      time.Time `json:"end"`
 	Distance float64   `json:"distance"`
 	Duration uint      `json:"duration"`
 	Speed    float64   `json:"speed"`
@@ -65,10 +69,12 @@ type Track struct {
 }
 
 type Segment struct {
-	Distance float64 `json:"distance"`
-	Duration uint    `json:"duration"`
-	Speed    float64 `json:"speed"`
-	Points   []Point `json:"points"`
+	Start    time.Time `json:"start"`
+	End      time.Time `json:"end"`
+	Distance float64   `json:"distance"`
+	Duration uint      `json:"duration"`
+	Speed    float64   `json:"speed"`
+	Points   []Point   `json:"points"`
 }
 
 type Point struct {
@@ -103,6 +109,12 @@ func parse(r io.Reader) (doc Doc, err error) {
 		doc.Distance += t.Distance
 	}
 
+	if len(doc.Tracks) > 0 {
+		t1, t2 := doc.Tracks[0], doc.Tracks[len(doc.Tracks)-1]
+		doc.Start = t1.Start
+		doc.End = t2.End
+	}
+
 	return doc, nil
 }
 
@@ -114,6 +126,12 @@ func convertTrack(track gpx.Track) (t Track) {
 		t.Segments = append(t.Segments, s)
 		t.Duration += s.Duration
 		t.Distance += s.Distance
+	}
+
+	if len(t.Segments) > 0 {
+		s1, s2 := t.Segments[0], t.Segments[len(t.Segments)-1]
+		t.Start = s1.Start
+		t.End = s2.End
 	}
 
 	if t.Duration > 0 {
@@ -147,6 +165,10 @@ func convertSegment(segment gpx.Segment) (s Segment) {
 
 	if len(s.Points) > 0 {
 		p := s.Points[len(s.Points)-1]
+		q := s.Points[0]
+
+		s.Start = q.Time
+		s.End = p.Time
 		s.Distance = p.CumulativeDistance
 		s.Duration = p.CumulativeDuration
 
